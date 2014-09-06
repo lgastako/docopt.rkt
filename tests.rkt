@@ -2,6 +2,12 @@
 
 (require rackunit)
 
+(define (nil? x)
+  (eqv? empty x))
+
+(define (map-cat f xs)
+  (apply append (map f xs)))
+
 ;; (defn load-test-cases
 ;;   "Loads language-agnostic docopt tests from file (such as testcases.docopt)."
 ;;   [path]
@@ -11,11 +17,29 @@
 ;;                         (re-seq test-block-regex tests)))
 ;;                  (re-seq doc-block-regex (s/replace (slurp path) #"#.*" "")))))
 
-(define (map-cat f xs)
-  (apply append (map f xs)))
-
 (define (load-test-cases path)
   (printf "load-test-cases coming soon\n"))
+
+;; (defn test-case-error-report
+;;   "Returns a report of all failed test cases"
+;;   [doc in out]
+;;   (let [docinfo (try (d/parse doc)
+;;                   (catch Exception e (.getMessage e)))]
+;;     (if (string? docinfo)
+;;       (str "\n" (s/trim-newline doc) "\n" docinfo)
+;;       (let [result (or (m/match-argv docinfo in) "user-error")]
+;;         (if (not= result out)
+;;           (str "\n" (s/trim-newline doc) "\n$ prog " (s/join " " in)
+;;                "\nexpected: " out "\nobtained: " result "\n\n"))))))
+
+(define (test-case-error-report doc in out)
+  (let ([docinfo (parse-opts doc)])
+    (if (string? docinfo)
+        (string-append "\n" (trim-newline doc) "\n" docinfo)
+        (let ([result (or (...) "user-error")])
+          (when (not (eqv? result out))
+            (string-append "\n" (trim-newline doc) "\n$ prog " (string-join in " ")
+                           "\nexpected: " out "\nobtained: " result "\n\n"))))))
 
 ;; (defn valid?
 ;; "Validates all test cases found in the file named 'test-cases-file-name'."
@@ -26,12 +50,6 @@
 ;;     (throw (Exception. (apply str eseq))))
 ;;   (println "Successfully passed" (count test-cases) "tests loaded from '" test-cases-file-name "'.\n")
 ;;   true))
-
-(define (nil? x)
-  (eqv? empty x))
-
-(define (test-case-error-report . args)
-  (printf "test-case-error-report not implemented yet."))
 
 (define (valid? test-cases-file-name)
   (let ([test-cases (load-test-cases test-cases-file-name)])
