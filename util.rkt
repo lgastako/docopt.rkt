@@ -1,10 +1,20 @@
 #lang racket
 
+(require "helpers.rkt")
+
+;; Why isn't it picking these up from helpers.rkt?
+
+(define concat append)
+
+(define str string-append)
+
 (define (reduce f xs)
   (if (empty? xs) '() (foldl f (first xs) (rest xs))))
 
-;; (ns docopt.util
-;;   (:require [clojure.string :as s]))
+(define (map-cat f xs)
+  (apply append (map f xs)))
+
+(define partial curry)
 
 ;; ;; macros
 
@@ -24,14 +34,22 @@
 ;;   "Syntactic sugar for derive."
 ;;   `(do ~@(mapcat (fn [[parent children]] (map (fn [child] `(derive ~child ~parent)) children)) m)))
 
+(define-syntax-rule (specialize m)
+  `(do ~@(map-cat (lambda (parent children) (map (lambda (child) `(derivce ~child ~parent)) children)) m)))
+
 ;; ;; tokenization
 
 ;; (def re-arg-str "(<[^<>]*>|[A-Z_0-9]*[A-Z_][A-Z_0-9]*)") ; argument pattern
+
+(define re-arg-str "(<[^<>]*>|[A-Z_0-9]*[A-Z_][A-Z_0-9]*)") ; argument pattern
 
 ;; (defn re-tok
 ;;   "Generates tokenization regexp, bounded by whitespace or string beginning / end."
 ;;   [& patterns]
 ;;   (re-pattern (str "(?<=^| )" (apply str patterns) "(?=$| )")))
+
+(define (re-tok . patterns)
+  (regexp (string-append "(?<=^| )" (apply string-append patterns) "(?=$| )")))
 
 ;; (defn tokenize
 ;;   "Repeatedly extracts tokens from string according to sequence of [re tag];
@@ -42,7 +60,7 @@
 ;;                    (let [substrings (map s/trim (s/split (str " " (s/trim source) " ") re))
 ;;                          new-tokens (map #(into [tag] (if (vector? %) (filter seq (rest %))))
 ;;                                          (re-seq re source))]
-;;                      (filter seq (interleave substrings (concat (if tag new-tokens) (repeat nil)))))
+;;                      (filter seq (interleave substrings (append (if tag new-tokens) (repeat nil)))))
 ;;                    [source]))]
 ;;     (reduce #(mapcat (partial tokfn %2) %1) [string] pairs)))
 
@@ -50,16 +68,20 @@
   ;; Trying to approximate the semantics as used below not as available in clojure in general...
   (list? maybe-seq))
 
+(define (interleave . colls)
+  (let ([colls (filter (compose1 not empty?) colls)])
+    (append (map first colls) (apply interleave (map rest colls)))))
+
 (define (tokenize string pairs)
   (let ([tokfn (lambda (re-tag source)
                  (let* ([re (first re-tag)]
                         [re (if (regexp? re) re (regexp re))]
                         [tag (second re-tag)])
                    (if (string? source)
-                       (let* ([substrings (map string-trim (string-split (string-append " " (string-trim source) " ")))]
+                       (let* ([substrings (map string-trim (string-split (str " " (string-trim source) " ")))]
                               [new-tokens (map (lambda (x)
                                                  (append (list tag) (when (vector? x) (filter hack-seq (rest x)))))
                                                (regexp-match* re source))])
-                         (filter hack-seq (interleave substrings (concat (if tag new-tokens) (repeat nil)))))
+                         (filter hack-seq (interleave substrings (when tag new-tokens))))
                        '(source))))])
-    (reduce (lambda (a b) (map-cat (curry tokfn b) a)) (append '(string) pairs))))
+    (reduce (lambda (a b) (map-cat (partial tokfn b) a)) (append '(string) pairs))))

@@ -19,3 +19,4 @@
          [osplitfn (lambda (options-block) (regexp-match* "(?<=^|\n)\\s*-.*(?:\\s+[^- \t\n].*)*" options-block))])
     (parse-usage (section "usage" split-lines)
                  (parse-options (section "options" osplitfn)))))
+

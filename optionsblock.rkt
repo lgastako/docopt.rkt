@@ -16,9 +16,13 @@
 ;;                     [(re-pattern re-arg-str)                         :arg]
 ;;                     [#"\s*[=,]?\s*"]]))
 
-
 (define (tokenize-option string)
-  (tokenize))
+  (tokenize string '('((regexp "\\s{2,}(?s).*\\[(?i)default(?-i):\\s*([^\\]]+).*") '#:default)
+                     '((regexp "\\s{2,}(?s).*"))
+                     '((regexp "(?:^|\\s+),?\\s*-([^-,])"                          '#:short))
+                     '((regexp "(?:^|\\s+),?\\s*--([^ \\t=,]+)")                   '#:long)
+                     '((re-pattern re-arg-str)                                     '#:arg)
+                     '((regexp "\\s*[=,]?\\s*")))))
 
 ;; (defn parse-option
 ;;   "Parses option description line into associative map."
@@ -40,3 +44,15 @@
 ;;                    (distinct? (filter identity (map :short options)))))
 ;;          :syntax "In options descriptions, at least one option defined more than once.")
 ;;     (into #{} options)))
+
+(define (options->set options)
+  (let ([set (make-hash)])
+    (for [(k v) options]
+      (hash-set! set (k . v) #t))))
+
+(define (parse-opts options-lines)
+  (let ([options (map parse-option option-lines)]
+        (err (not (and (distinct? (filter identity (map '#:long options)))
+                       (distinct? (filter identity (map '#:short options))))
+                  #':syntax "In options descriptions, at least one option defined more than once."))
+        (options->set options))))

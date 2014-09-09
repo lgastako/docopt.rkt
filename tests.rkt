@@ -2,12 +2,6 @@
 
 (require rackunit)
 
-(define (nil? x)
-  (eqv? empty x))
-
-(define (map-cat f xs)
-  (apply append (map f xs)))
-
 ;; (defn load-test-cases
 ;;   "Loads language-agnostic docopt tests from file (such as testcases.docopt)."
 ;;   [path]
