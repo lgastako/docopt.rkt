@@ -2,25 +2,22 @@
 
 (require "helpers.rkt")
 
-;; Why isn't it picking these up from helpers.rkt?
-
-(define concat append)
-
-(define str string-append)
-
-(define (reduce f xs)
-  (if (empty? xs) '() (foldl f (first xs) (rest xs))))
-
-(define (map-cat f xs)
-  (apply append (map f xs)))
-
-(define partial curry)
+(provide err)
+;;(provide defmultimethods)
+(provide specialize)
+(provide re-arg-str)
+(provide re-tok)
+(provide tokenize)
 
 ;; ;; macros
 
 ;; (defmacro err [err-clause type & err-strs]
 ;;   `(when ~err-clause
 ;;      (throw (Exception. (str "DOCOPT ERROR " ~(case type :syntax "(syntax) " :parse "(parse) ") \| ~@err-strs)))))
+
+(define-syntax-rule (err err-clause type . err-strs)
+  `(when ~err-clause
+     (throw (Exception. (str "DOCOPT ERROR " ~(case type :syntax "(syntax) " :parse "(parse) ") \| ~@err-str)))))
 
 ;; (defmacro defmultimethods
 ;;   "Syntactic sugar for defmulti + multiple defmethods."

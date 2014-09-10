@@ -37,6 +37,14 @@
 ;;             {:takes-arg false})
 ;;           (filter val {:short short :long long})))))
 
+(define (parse-option option-line)
+  (let ([tokens (tokenize-option option-line)])
+    (err (nil-if-empty (filter string? tokens)) #':syntax
+         "Badly-formed option definition: '" (string-replace (regexp "\s\s.*") "") "'."))
+  ;; ugh this next part is all bad...
+;;  (let ([... (reduce conj {} tokens)]))
+  )
+
 ;; (defn parse [options-lines]
 ;;   "Parses options lines."
 ;;   (let [options (map parse-option options-lines)]

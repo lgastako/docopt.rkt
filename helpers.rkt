@@ -1,5 +1,12 @@
 #lang racket
 
+(provide reduce)
+(provide nil?)
+(provide map-cat)
+(provide concat)
+(provide partial)
+(provide str)
+
 (define (reduce f xs)
   (if (empty? xs) '() (foldl f (first xs) (rest xs))))
 
